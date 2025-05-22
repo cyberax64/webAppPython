@@ -12,8 +12,10 @@ Une application Python simple qui ouvre une fenêtre sans menu ni onglets pour a
 ## Prérequis
 
 - Python 3.6 ou supérieur
-- PyQt5
-- PyQtWebEngine
+- PyQt5 (version 5.15.0 ou supérieure recommandée)
+- PyQtWebEngine (version 5.15.0 ou supérieure recommandée)
+
+> **Note**: L'application est compatible avec différentes versions de PyQt5, mais certaines fonctionnalités avancées de gestion des cookies peuvent être limitées avec des versions plus anciennes.
 
 ## Installation
 

@@ -9,8 +9,17 @@ import json
 import http.cookiejar
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from PyQt5.QtCore import QUrl, QDir
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineProfile
-from PyQt5.QtWebEngineCore import QWebEngineCookieStore
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineProfile, QWebEnginePage
+try:
+    from PyQt5.QtWebEngineCore import QWebEngineCookieStore
+except ImportError:
+    # Dans certaines versions de PyQt5, QWebEngineCookieStore est dans QtWebEngineWidgets
+    pass
+
+class CustomWebPage(QWebEnginePage):
+    """Page web personnalisée pour utiliser un profil spécifique"""
+    def __init__(self, profile, parent=None):
+        super().__init__(profile, parent)
 
 class WebApp(QMainWindow):
     def __init__(self, url, title, width, height):
@@ -20,24 +29,31 @@ class WebApp(QMainWindow):
         self.setWindowTitle(title)
         self.resize(width, height)
         
-        # Création du profil pour gérer les cookies
-        self.profile = QWebEngineProfile("WebAppProfile", self)
-        self.cookie_store = self.profile.cookieStore()
-        
         # Définir le chemin pour stocker les cookies
         self.data_path = os.path.join(QDir.currentPath(), "cookies")
         os.makedirs(self.data_path, exist_ok=True)
+        
+        # Création du profil pour gérer les cookies
+        self.profile = QWebEngineProfile("WebAppProfile", self)
         self.profile.setPersistentStoragePath(self.data_path)
         
-        # Création de la vue web
+        try:
+            # Essayer d'accéder au cookie store (peut ne pas être disponible dans toutes les versions)
+            self.cookie_store = self.profile.cookieStore()
+            # Connecter les signaux pour la gestion des cookies si disponible
+            self.cookie_store.cookieAdded.connect(self.on_cookie_added)
+            # Charger les cookies existants
+            self.load_cookies()
+        except (AttributeError, NameError):
+            print("Avertissement: La gestion avancée des cookies n'est pas disponible dans cette version de PyQt5.")
+            print("Les cookies seront toujours stockés, mais certaines fonctionnalités peuvent être limitées.")
+        
+        # Création de la vue web avec une page personnalisée
         self.web_view = QWebEngineView(self)
-        self.web_view.page().setProfile(self.profile)
         
-        # Connecter les signaux pour la gestion des cookies
-        self.cookie_store.cookieAdded.connect(self.on_cookie_added)
-        
-        # Charger les cookies existants
-        self.load_cookies()
+        # Créer une page web personnalisée avec notre profil
+        custom_page = CustomWebPage(self.profile, self.web_view)
+        self.web_view.setPage(custom_page)
         
         # Chargement de l'URL
         self.web_view.load(QUrl(url))
