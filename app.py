@@ -3,6 +3,7 @@
 
 import sys
 import os
+import platform
 import configparser
 import json
 import http.cookiejar
@@ -70,7 +71,7 @@ def load_config():
         print(f"Erreur: Le fichier de configuration '{config_path}' n'existe pas.")
         sys.exit(1)
     
-    config.read(config_path)
+    config.read(config_path, encoding='utf-8')  # Spécifier l'encodage pour la compatibilité Windows
     
     try:
         url = config.get('WebApp', 'url')
@@ -82,9 +83,23 @@ def load_config():
         print(f"Erreur dans le fichier de configuration: {e}")
         sys.exit(1)
 
+def is_graphical_environment():
+    """Détecte si l'environnement actuel est graphique"""
+    system = platform.system()
+    
+    if system == "Windows":
+        # Sur Windows, on suppose qu'un environnement graphique est toujours disponible
+        return True
+    elif system == "Darwin":
+        # Sur macOS, on suppose qu'un environnement graphique est toujours disponible
+        return True
+    else:
+        # Sur Linux, vérifier la variable d'environnement DISPLAY
+        return "DISPLAY" in os.environ
+
 def main():
     # Vérifier si on est dans un environnement graphique
-    if "DISPLAY" not in os.environ and not sys.platform.startswith("win") and not sys.platform.startswith("darwin"):
+    if not is_graphical_environment():
         print("Aucun environnement graphique détecté. Exécution en mode test...")
         # Chargement de la configuration
         url, title, width, height = load_config()

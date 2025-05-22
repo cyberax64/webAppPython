@@ -7,6 +7,7 @@ Une application Python simple qui ouvre une fenêtre sans menu ni onglets pour a
 - Affichage d'un site web dans une fenêtre minimaliste (sans menu, onglets, etc.)
 - Configuration du site web via un fichier config.ini
 - Gestion et persistance des cookies entre les sessions
+- Compatible avec Windows, Linux et macOS
 
 ## Prérequis
 
@@ -16,7 +17,27 @@ Une application Python simple qui ouvre une fenêtre sans menu ni onglets pour a
 
 ## Installation
 
-### Méthode 1 : Script d'installation automatique
+### Sous Windows
+
+#### Méthode 1 : Script d'installation automatique
+
+Double-cliquez sur le fichier `install.bat` ou exécutez-le depuis une invite de commande :
+
+```cmd
+install.bat
+```
+
+#### Méthode 2 : Installation manuelle
+
+Installez les dépendances Python :
+
+```cmd
+pip install -r requirements.txt
+```
+
+### Sous Linux/macOS
+
+#### Méthode 1 : Script d'installation automatique
 
 Utilisez le script d'installation fourni pour installer toutes les dépendances nécessaires :
 
@@ -24,9 +45,9 @@ Utilisez le script d'installation fourni pour installer toutes les dépendances 
 ./install.sh
 ```
 
-Ce script installera automatiquement les dépendances système et Python requises.
+Ce script installera automatiquement les dépendances Python et vous indiquera les dépendances système à installer si nécessaire.
 
-### Méthode 2 : Installation manuelle
+#### Méthode 2 : Installation manuelle
 
 1. Installez les dépendances système (sous Debian/Ubuntu) :
 
@@ -38,7 +59,7 @@ sudo apt-get install -y libxcb-xinerama0 libxcb-icccm4 libxcb-image0 libxcb-keys
 2. Installez les dépendances Python :
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## Configuration
@@ -55,7 +76,27 @@ window_height = 768
 
 ## Utilisation
 
-### Méthode 1 : Script de lancement
+### Sous Windows
+
+#### Méthode 1 : Script de lancement
+
+Double-cliquez sur le fichier `run.bat` ou exécutez-le depuis une invite de commande :
+
+```cmd
+run.bat
+```
+
+#### Méthode 2 : Exécution directe
+
+Exécutez l'application directement avec Python :
+
+```cmd
+python app.py
+```
+
+### Sous Linux/macOS
+
+#### Méthode 1 : Script de lancement
 
 Utilisez le script de lancement fourni :
 
@@ -63,12 +104,12 @@ Utilisez le script de lancement fourni :
 ./run.sh
 ```
 
-### Méthode 2 : Exécution directe
+#### Méthode 2 : Exécution directe
 
 Exécutez l'application directement avec Python :
 
 ```bash
-python app.py
+python3 app.py
 ```
 
 ou si le fichier est exécutable :
@@ -84,4 +125,5 @@ Les cookies sont automatiquement enregistrés dans un dossier `cookies` créé d
 ## Remarques
 
 - L'application nécessite un environnement graphique pour fonctionner correctement.
-- Si vous exécutez l'application dans un environnement sans interface graphique, elle passera en mode test et affichera uniquement les informations de configuration.
+- Si vous exécutez l'application dans un environnement sans interface graphique (Linux sans serveur X), elle passera en mode test et affichera uniquement les informations de configuration.
+- Sur Windows et macOS, l'application suppose qu'un environnement graphique est toujours disponible.
