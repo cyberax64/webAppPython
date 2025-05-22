@@ -39,6 +39,12 @@ class WebApp(QMainWindow):
     def __init__(self, url, title, width, height):
         super().__init__()
         
+        # Stocker les paramètres comme attributs de l'instance
+        self.url = url
+        self.title = title
+        self.width = width
+        self.height = height
+        
         # Configuration de la fenêtre principale
         self.setWindowTitle(title)
         self.resize(width, height)
