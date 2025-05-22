@@ -5,9 +5,12 @@ Une application Python simple qui ouvre une fenêtre sans menu ni onglets pour a
 ## Fonctionnalités
 
 - Affichage d'un site web dans une fenêtre minimaliste (sans menu, onglets, etc.)
+- Rendu optimal des pages web avec support complet de CSS et JavaScript
+- Moteur de rendu basé sur Chromium pour une compatibilité maximale avec les sites modernes
 - Configuration du site web via un fichier config.ini
 - Gestion et persistance des cookies entre les sessions
 - Compatible avec Windows, Linux et macOS
+- Indicateur de progression du chargement des pages
 
 ## Prérequis
 

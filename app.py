@@ -8,8 +8,8 @@ import configparser
 import json
 import http.cookiejar
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from PyQt5.QtCore import QUrl, QDir
-from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineProfile, QWebEnginePage
+from PyQt5.QtCore import QUrl, QDir, Qt
+from PyQt5.QtWebEngineWidgets import QWebEngineView, QWebEngineProfile, QWebEnginePage, QWebEngineSettings
 try:
     from PyQt5.QtWebEngineCore import QWebEngineCookieStore
 except ImportError:
@@ -20,6 +20,20 @@ class CustomWebPage(QWebEnginePage):
     """Page web personnalisée pour utiliser un profil spécifique"""
     def __init__(self, profile, parent=None):
         super().__init__(profile, parent)
+        
+    def userAgentForUrl(self, url):
+        # Utiliser un User-Agent moderne de Chrome pour une meilleure compatibilité
+        return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    
+    def javaScriptConsoleMessage(self, level, message, line, source):
+        # Gérer les messages de la console JavaScript
+        # Décommenter pour déboguer les problèmes JavaScript
+        # print(f"JS [{level}] {message} (ligne {line}, source: {source})")
+        pass
+        
+    def certificateError(self, error):
+        # Ignorer les erreurs de certificat pour une meilleure compatibilité
+        return True
 
 class WebApp(QMainWindow):
     def __init__(self, url, title, width, height):
@@ -36,6 +50,42 @@ class WebApp(QMainWindow):
         # Création du profil pour gérer les cookies
         self.profile = QWebEngineProfile("WebAppProfile", self)
         self.profile.setPersistentStoragePath(self.data_path)
+        
+        # Configuration avancée du profil pour un meilleur rendu
+        self.profile.setPersistentCookiesPolicy(QWebEngineProfile.AllowPersistentCookies)
+        self.profile.setHttpCacheType(QWebEngineProfile.DiskHttpCache)
+        self.profile.setHttpCacheMaximumSize(100 * 1024 * 1024)  # 100 MB
+        self.profile.setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+        
+        # Activer les plugins, CSS et JavaScript
+        settings = QWebEngineSettings.globalSettings()
+        
+        # Activer JavaScript et ses fonctionnalités
+        settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+        settings.setAttribute(QWebEngineSettings.JavascriptCanOpenWindows, True)
+        settings.setAttribute(QWebEngineSettings.JavascriptCanAccessClipboard, True)
+        
+        # Activer le stockage local et les cookies
+        settings.setAttribute(QWebEngineSettings.LocalStorageEnabled, True)
+        settings.setAttribute(QWebEngineSettings.LocalContentCanAccessRemoteUrls, True)
+        settings.setAttribute(QWebEngineSettings.PdfViewerEnabled, True)
+        
+        # Activer les fonctionnalités multimédias et graphiques
+        settings.setAttribute(QWebEngineSettings.PluginsEnabled, True)
+        settings.setAttribute(QWebEngineSettings.AutoLoadImages, True)
+        settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+        settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
+        settings.setAttribute(QWebEngineSettings.AutoLoadIconsForPage, True)
+        settings.setAttribute(QWebEngineSettings.TouchIconsEnabled, True)
+        
+        # Désactiver les restrictions de sécurité qui pourraient affecter le rendu
+        settings.setAttribute(QWebEngineSettings.XSSAuditingEnabled, False)
+        
+        # Activer les fonctionnalités CSS avancées
+        settings.setFontFamily(QWebEngineSettings.StandardFont, "Arial")
+        settings.setFontFamily(QWebEngineSettings.FixedFont, "Courier New")
+        settings.setFontSize(QWebEngineSettings.DefaultFontSize, 16)
+        settings.setDefaultTextEncoding("UTF-8")
         
         try:
             # Essayer d'accéder au cookie store (peut ne pas être disponible dans toutes les versions)
@@ -54,6 +104,38 @@ class WebApp(QMainWindow):
         # Créer une page web personnalisée avec notre profil
         custom_page = CustomWebPage(self.profile, self.web_view)
         self.web_view.setPage(custom_page)
+        
+        # Configuration spécifique à la page
+        page_settings = custom_page.settings()
+        
+        # Activer les barres de défilement et le mode plein écran
+        page_settings.setAttribute(QWebEngineSettings.ShowScrollBars, True)
+        page_settings.setAttribute(QWebEngineSettings.FullScreenSupportEnabled, True)
+        
+        # Permettre le contenu mixte (HTTP/HTTPS) pour une meilleure compatibilité
+        page_settings.setAttribute(QWebEngineSettings.AllowRunningInsecureContent, True)
+        page_settings.setAttribute(QWebEngineSettings.AllowGeolocationOnInsecureOrigins, True)
+        
+        # Activer explicitement CSS et JavaScript au niveau de la page
+        page_settings.setAttribute(QWebEngineSettings.JavascriptEnabled, True)
+        page_settings.setAttribute(QWebEngineSettings.JavascriptCanOpenWindows, True)
+        page_settings.setAttribute(QWebEngineSettings.JavascriptCanAccessClipboard, True)
+        
+        # Activer les fonctionnalités CSS avancées au niveau de la page
+        page_settings.setAttribute(QWebEngineSettings.AutoLoadImages, True)
+        page_settings.setAttribute(QWebEngineSettings.WebGLEnabled, True)
+        page_settings.setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled, True)
+        
+        # Configurer l'encodage du texte
+        page_settings.setDefaultTextEncoding("UTF-8")
+        
+        # Configurer la mise en cache des pages
+        custom_page.setBackgroundColor(Qt.white)  # Fond blanc par défaut
+        
+        # Connecter les signaux pour gérer les événements de chargement
+        self.web_view.loadStarted.connect(self.on_load_started)
+        self.web_view.loadProgress.connect(self.on_load_progress)
+        self.web_view.loadFinished.connect(self.on_load_finished)
         
         # Chargement de l'URL
         self.web_view.load(QUrl(url))
@@ -77,6 +159,36 @@ class WebApp(QMainWindow):
         # depuis le stockage persistant, donc cette méthode est principalement
         # pour la documentation et pour ajouter une logique supplémentaire si nécessaire
         pass
+        
+    def save_cookies(self):
+        """Sauvegarde les cookies dans le stockage persistant"""
+        # QWebEngineProfile gère automatiquement la sauvegarde des cookies
+        # dans le stockage persistant, donc cette méthode est principalement
+        # pour la documentation et pour ajouter une logique supplémentaire si nécessaire
+        pass
+        
+    def on_load_started(self):
+        """Appelé lorsque le chargement de la page commence"""
+        self.setWindowTitle(f"{self.title} (Chargement...)")
+        # Vous pourriez ajouter un indicateur de chargement ici si nécessaire
+        
+    def on_load_progress(self, progress):
+        """Appelé pendant le chargement de la page avec la progression"""
+        self.setWindowTitle(f"{self.title} (Chargement {progress}%)")
+        
+    def on_load_finished(self, success):
+        """Appelé lorsque le chargement de la page est terminé"""
+        if success:
+            self.setWindowTitle(self.title)
+        else:
+            self.setWindowTitle(f"{self.title} (Erreur de chargement)")
+            # Vous pourriez afficher une page d'erreur personnalisée ici
+    
+    def closeEvent(self, event):
+        """Gestion de l'événement de fermeture de la fenêtre"""
+        # Sauvegarder les cookies avant de fermer
+        self.save_cookies()
+        event.accept()
 
 def load_config():
     """Charge la configuration depuis le fichier config.ini"""
